@@ -1,0 +1,18 @@
+meta {
+  name: Message
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/chats/message
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "chat_id": 1,
+    "message": "continuation of an existing chat"
+  }
+}

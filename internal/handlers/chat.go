@@ -82,7 +82,7 @@ func SendMessage(c *gin.Context) {
 		return
 	}
 
-	if reqBody.ChatId != 0 {
+	if reqBody.ChatId == 0 {
 		responseMessage, err := newChat(c, reqBody.Text)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -92,11 +92,43 @@ func SendMessage(c *gin.Context) {
 		return
 	}
 
-	// TO-DO: Add message to existing chat
 	if !chatBelongsToCurrentUser(c, reqBody.ChatId) {
 		c.JSON(http.StatusNotFound, gin.H{})
 		return
 	}
+	responseMessage, err := newMessage(reqBody.ChatId, reqBody.Text)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, responseMessage)
+}
+
+func newMessage(chatId int, message string) (*model.Message, error) {
+	uChatId := uint(chatId)
+
+	userMessage := model.Message{
+		Author: "HUMAN",
+		Text:   message,
+		ChatID: uChatId,
+	}
+
+	if err := database.DB.Create(&userMessage).Error; err != nil {
+		return nil, err
+	}
+
+	// TO-DO: Send message to api, await response
+	response := model.Message{
+		Author: "GPT",
+		Text:   "hello from gpt api",
+	}
+	response.ChatID = uChatId
+
+	if err := database.DB.Create(&response).Error; err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
 
 func newChat(c *gin.Context, message string) (*model.Message, error) {
@@ -127,7 +159,7 @@ func newChat(c *gin.Context, message string) (*model.Message, error) {
 func chatFromCurrentUser(c *gin.Context, chatId int) *model.Chat {
 	var chat model.Chat
 	userId := utils.GetCurrentUser(c).ID
-	if err := database.DB.First(&chat, "chat_id = ?", chatId).Error; err != nil || chat.UserID != userId {
+	if err := database.DB.First(&chat, chatId).Error; err != nil || chat.UserID != userId {
 		return nil
 	}
 	return &chat

@@ -1,0 +1,17 @@
+meta {
+  name: New chat
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/chats/message
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "message": "Hello this is a new chat"
+  }
+}
