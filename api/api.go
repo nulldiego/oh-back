@@ -20,7 +20,7 @@ func SetupApi() *gin.Engine {
 		ctx.JSON(http.StatusOK, "pong")
 	})
 
-	userRoutes := r.Group("/user")
+	userRoutes := r.Group("/api/user")
 	{
 		userRoutes.POST("/signup", handlers.Signup)
 		userRoutes.POST("/login", handlers.Login)
@@ -28,7 +28,7 @@ func SetupApi() *gin.Engine {
 	}
 
 	// Chat routes
-	chatRoutes := r.Group("/chats", middleware.RequireAuth)
+	chatRoutes := r.Group("/api/chats", middleware.RequireAuth)
 	{
 		// Authorized test
 		chatRoutes.GET("test", func(c *gin.Context) {
