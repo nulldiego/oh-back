@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,14 +19,20 @@ type AuthUser struct {
 }
 
 func RequireAuth(c *gin.Context) {
-	tokenString, err := c.Cookie("Authorization")
+	authHeader := c.GetHeader("Authorization")
 
-	if err != nil || tokenString == "" {
+	if authHeader == "" {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	authToken := strings.Split(authHeader, " ")
+	if len(authToken) != 2 || authToken[0] != "Bearer" {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	token, err := jwt.Parse(authToken[1], func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -33,13 +40,13 @@ func RequireAuth(c *gin.Context) {
 		return []byte(config.Conf.JwtKey), nil
 	})
 
-	if err != nil {
+	if err != nil || !token.Valid {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
+	if !ok {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}

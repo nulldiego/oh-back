@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/nulldiego/oh-back/internal/handlers"
 	"github.com/nulldiego/oh-back/internal/middleware"
@@ -15,6 +16,11 @@ func SetupApi() *gin.Engine {
 	// gin.DisableConsoleColor()
 	r := gin.Default()
 
+	config := cors.DefaultConfig()
+	config.AllowCredentials = true
+	config.AllowOrigins = []string{"http://192.168.1.115:3000"}
+	r.Use(cors.New(config))
+
 	// Ping test
 	r.GET("/ping", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, "pong")
@@ -24,7 +30,6 @@ func SetupApi() *gin.Engine {
 	{
 		userRoutes.POST("/signup", handlers.Signup)
 		userRoutes.POST("/login", handlers.Login)
-		userRoutes.POST("/logout", middleware.RequireAuth, handlers.Logout)
 	}
 
 	// Chat routes

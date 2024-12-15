@@ -14,7 +14,7 @@ import (
 
 func Signup(c *gin.Context) {
 	var reqBody struct {
-		Username string `json:"username" binding:"required,min=5"`
+		Username string `json:"username" binding:"required,min=3"`
 		Password string `json:"password" binding:"required,min=6"`
 	}
 
@@ -45,7 +45,12 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": user})
+	token, err := generateToken(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
 func Login(c *gin.Context) {
@@ -75,16 +80,7 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
 		return
 	}
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("Authorization", token, 3600*24*30, "", "", false, true)
-	c.JSON(http.StatusOK, gin.H{})
-}
-
-func Logout(c *gin.Context) {
-	// Clear the cookie
-	c.SetCookie("Authorization", "", 0, "", "", false, true)
-
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
 func generateToken(user model.User) (string, error) {
