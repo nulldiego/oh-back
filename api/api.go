@@ -45,7 +45,7 @@ func SetupApi() *gin.Engine {
 			c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("Hello, %s!", user.(*model.User).Username)})
 		})
 
-		chatRoutes.GET("/", handlers.GetUserChats)        // Get current user chats
+		chatRoutes.GET("", handlers.GetUserChats)         // Get current user chats
 		chatRoutes.GET("/:chatId", handlers.GetMessages)  // Get chat messages
 		chatRoutes.POST("/message", handlers.SendMessage) // Send message (optional chatid, if empty create new chat)
 	}
