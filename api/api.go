@@ -17,7 +17,7 @@ func SetupApi() *gin.Engine {
 	r := gin.Default()
 
 	config := cors.DefaultConfig()
-	config.AllowCredentials = true
+	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
 	config.AllowOrigins = []string{"http://192.168.1.115:3000"}
 	r.Use(cors.New(config))
 
