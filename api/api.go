@@ -18,7 +18,7 @@ func SetupApi() *gin.Engine {
 
 	config := cors.DefaultConfig()
 	config.AllowHeaders = append(config.AllowHeaders, "Authorization")
-	config.AllowOrigins = []string{"http://192.168.1.115:3000"}
+	config.AllowOrigins = []string{"http://192.168.1.115:3000", "http://192.168.1.122:3000", "https://oh.montea.net"}
 	r.Use(cors.New(config))
 
 	// Ping test
