@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nulldiego/oh-back/config"
@@ -123,7 +122,7 @@ func newMessage(chatId int, message string) (*model.Message, error) {
 	payload, _ := json.Marshal(map[string]string{"id": string(chatId), "prompt": message})
 	payloadBuffer := bytes.NewBuffer(payload)
 	httpClient := http.Client{
-		Timeout: time.Minute * 5,
+		Timeout: 0,
 	}
 	resp, err := httpClient.Post("http://192.168.1.117:8000/analyze", "application/json", payloadBuffer)
 	if err != nil {
@@ -164,7 +163,7 @@ func newChat(c *gin.Context, message string) (*model.Message, error) {
 	}
 
 	httpClient := http.Client{
-		Timeout: time.Minute * 5,
+		Timeout: 0,
 	}
 	payload, _ := json.Marshal(map[string]string{"id": string(chat.ID), "prompt": message})
 	payloadBuffer := bytes.NewBuffer(payload)
