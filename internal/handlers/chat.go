@@ -3,8 +3,10 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"net"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nulldiego/oh-back/config"
@@ -122,7 +124,18 @@ func newMessage(chatId int, message string) (*model.Message, error) {
 	payload, _ := json.Marshal(map[string]string{"id": string(chatId), "prompt": message})
 	payloadBuffer := bytes.NewBuffer(payload)
 	httpClient := http.Client{
-		Timeout: 0,
+		Timeout: 5 * time.Minute,
+		Transport: &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout:   5 * time.Minute,
+				KeepAlive: 5 * time.Minute,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       5 * time.Minute,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		},
 	}
 	resp, err := httpClient.Post("http://192.168.1.117:8000/analyze", "application/json", payloadBuffer)
 	if err != nil {
@@ -163,7 +176,18 @@ func newChat(c *gin.Context, message string) (*model.Message, error) {
 	}
 
 	httpClient := http.Client{
-		Timeout: 0,
+		Timeout: 5 * time.Minute,
+		Transport: &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout:   5 * time.Minute,
+				KeepAlive: 5 * time.Minute,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       5 * time.Minute,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		},
 	}
 	payload, _ := json.Marshal(map[string]string{"id": string(chat.ID), "prompt": message})
 	payloadBuffer := bytes.NewBuffer(payload)
