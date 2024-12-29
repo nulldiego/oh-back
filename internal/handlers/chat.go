@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -117,12 +119,27 @@ func newMessage(chatId int, message string) (*model.Message, error) {
 		return nil, err
 	}
 
-	// TO-DO: Send message to api, await response
+	payload, _ := json.Marshal(map[string]string{"id": string(chatId), "prompt": message})
+	payloadBuffer := bytes.NewBuffer(payload)
+	resp, err := http.Post("http://192.168.1.117:8000/analyze", "application/json", payloadBuffer)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var respBody struct {
+		Text string `json:"text"`
+	}
+
+	if err = json.NewDecoder(resp.Body).Decode(&respBody); err != nil {
+		return nil, err
+	}
+
 	response := model.Message{
 		Author: "GPT",
-		Text:   "hello from gpt api",
+		Text:   respBody.Text,
+		ChatID: uChatId,
 	}
-	response.ChatID = uChatId
 
 	if err := database.DB.Create(&response).Error; err != nil {
 		return nil, err
@@ -134,12 +151,6 @@ func newMessage(chatId int, message string) (*model.Message, error) {
 func newChat(c *gin.Context, message string) (*model.Message, error) {
 	userId := utils.GetCurrentUser(c).ID
 
-	// TO-DO: Send message to api, await response
-	response := model.Message{
-		Author: "GPT",
-		Text:   "hello from gpt api",
-	}
-
 	chat := model.Chat{
 		UserID:   userId,
 		Messages: []model.Message{{Author: "HUMAN", Text: message}},
@@ -148,7 +159,28 @@ func newChat(c *gin.Context, message string) (*model.Message, error) {
 		return nil, err
 	}
 
-	response.ChatID = chat.ID
+	payload, _ := json.Marshal(map[string]string{"id": string(chat.ID), "prompt": message})
+	payloadBuffer := bytes.NewBuffer(payload)
+	resp, err := http.Post("http://192.168.1.117:8000/analyze", "application/json", payloadBuffer)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var respBody struct {
+		Text string `json:"text"`
+	}
+
+	if err = json.NewDecoder(resp.Body).Decode(&respBody); err != nil {
+		return nil, err
+	}
+
+	response := model.Message{
+		Author: "GPT",
+		Text:   respBody.Text,
+		ChatID: chat.ID,
+	}
+
 	if err := database.DB.Create(&response).Error; err != nil {
 		return nil, err
 	}
