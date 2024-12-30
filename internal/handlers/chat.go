@@ -137,7 +137,7 @@ func newMessage(chatId int, message string) (*model.Message, error) {
 			ExpectContinueTimeout: 1 * time.Second,
 		},
 	}
-	resp, err := httpClient.Post("http://192.168.1.117:8000/analyze", "application/json", payloadBuffer)
+	resp, err := httpClient.Post("http://localhost:8000/analyze", "application/json", payloadBuffer)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +191,7 @@ func newChat(c *gin.Context, message string) (*model.Message, error) {
 	}
 	payload, _ := json.Marshal(map[string]string{"id": string(chat.ID), "prompt": message})
 	payloadBuffer := bytes.NewBuffer(payload)
-	resp, err := httpClient.Post("http://192.168.1.117:8000/analyze", "application/json", payloadBuffer)
+	resp, err := httpClient.Post("http://localhost:8000/analyze", "application/json", payloadBuffer)
 	if err != nil {
 		return nil, err
 	}
